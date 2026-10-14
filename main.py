@@ -50,15 +50,15 @@ def main():
         elif choice == "2":
             run_script(os.path.join("2_etl", "etl_pipeline.py"), "Menjalankan Pipeline ETL")
         elif choice == "3":
-            run_script(os.path.join("5_dashboard", "olap_analysis.py"), "Menjalankan Analisis OLAP")
+            run_script(os.path.join("FrontEND", "olap_analysis.py"), "Menjalankan Analisis OLAP")
         elif choice == "4":
-            run_script(os.path.join("5_dashboard", "dashboard_app.py"), "Menjalankan Web Dashboard")
+            run_script(os.path.join("FrontEND", "dashboard_app.py"), "Menjalankan Web Dashboard")
         elif choice == "5":
             run_script(os.path.join("3_scheduler", "etl_scheduler.py"), "Menjalankan ETL Scheduler")
         elif choice == "6":
             run_script(os.path.join("1_oltp", "generate_oltp.py"), "Langkah 1/3: Generate OLTP")
             run_script(os.path.join("2_etl", "etl_pipeline.py"), "Langkah 2/3: Eksekusi ETL")
-            run_script(os.path.join("5_dashboard", "olap_analysis.py"), "Langkah 3/3: Analisis OLAP & Chart")
+            run_script(os.path.join("FrontEND", "olap_analysis.py"), "Langkah 3/3: Analisis OLAP & Chart")
             print("\n[OK] Pipeline End-to-End berhasil diselesaikan!")
         elif choice == "0":
             print("Terima kasih. Program selesai.")

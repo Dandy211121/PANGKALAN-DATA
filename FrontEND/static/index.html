@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pusat Analisis Penjualan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f2f5f2;--pn:#fff;--ink:#14231f;--mu:#5f7069;--ln:#dde5e0;--fo:#0f5c4d;--fo2:#e3f0ec;--sa:#f2a900;--co:#d6533a;--bl:#3c6e9f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 "Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-columns:232px 1fr;min-height:100vh;font-variant-numeric:tabular-nums}
+aside{background:var(--fo);color:#e8f3ef;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+aside h1{font-size:1.05rem;font-weight:800;line-height:1.25;padding:0 10px 4px}aside p{font-size:.72rem;opacity:.7;padding:0 10px 18px}
+nav button{all:unset;box-sizing:border-box;width:100%;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:#cfe5de}
+nav button:hover{background:rgba(255,255,255,.1)}nav button.on{background:#fff;color:var(--fo);font-weight:700}
+nav button:focus-visible,input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--sa);outline-offset:2px}
+.src{margin-top:auto;font-size:.7rem;opacity:.65;padding:0 10px}
+main{padding:0 28px 40px;min-width:0}
+.fl{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:16px 0;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--ln)}
+label{display:flex;flex-direction:column;gap:3px;font-size:.72rem;font-weight:600;color:var(--mu)}
+input,select,.btn{font:inherit;font-size:.85rem;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:8px;padding:7px 10px}
+.btn{cursor:pointer;font-weight:600}.btn:hover{border-color:var(--fo);color:var(--fo)}.btn.pri{background:var(--fo);color:#fff;border-color:var(--fo)}
+.pre{display:flex;gap:6px;margin-left:auto}
+h2{font-size:1.5rem;font-weight:800;margin:26px 0 4px;letter-spacing:-.01em}h3{font-size:.95rem;font-weight:700;margin-bottom:2px}.sub{color:var(--mu);font-size:.8rem;margin-bottom:14px}
+.page{display:none}.page.on{display:block}
+.ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 36px;margin:14px 0 22px}
+.ins li{list-style:none;padding:11px 0 11px 14px;border-left:3px solid var(--fo);margin-bottom:8px;background:linear-gradient(90deg,var(--fo2),transparent)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));background:var(--pn);border:1px solid var(--ln);border-radius:12px;margin-bottom:22px}
+.strip>div{padding:16px 18px;border-right:1px solid var(--ln)}.strip>div:last-child{border:0}
+.strip small{color:var(--mu);font-weight:600;font-size:.75rem}.strip b{display:block;font-size:1.35rem;font-weight:800;margin:2px 0}
+.up{color:var(--fo)}.dn{color:var(--co)}.d{font-size:.75rem;font-weight:600}
+.g{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));margin-bottom:18px}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px;min-width:0}
+.ch{position:relative;height:290px}.ch.t{height:340px}
+.tw{max-height:420px;overflow:auto}table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mu);font-weight:600;position:sticky;top:0;background:var(--pn)}
+th.s{cursor:pointer}td.n,th.n{text-align:right}
+.hm{overflow-x:auto;padding-bottom:6px}.hm div.c{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,13px);gap:3px;width:max-content}
+.hm i{width:13px;height:13px;border-radius:3px;background:#e9efec}.lg{display:flex;gap:4px;align-items:center;font-size:.72rem;color:var(--mu);margin-top:8px}.lg i{width:13px;height:13px;border-radius:3px}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.bar{height:6px;background:var(--ln);border-radius:3px;min-width:90px}.bar s{display:block;height:6px;border-radius:3px;background:var(--fo)}
+#err{display:none;background:#fde8e3;border:1px solid var(--co);color:#7a2413;padding:12px 14px;border-radius:8px;margin-top:14px}
+@media(max-width:860px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}aside p,.src{display:none}nav{display:flex;flex-wrap:wrap;gap:4px}nav button{width:auto}.g{grid-template-columns:1fr}main{padding:0 14px 30px}.pre{margin:0}}
+</style></head><body>
+<aside><h1>Pusat Analisis Penjualan</h1><p>E-Commerce Data Warehouse</p>
+<nav id="nav"></nav><div class="src" id="src"></div></aside>
+<main>
+<div class="fl">
+<label>Dari<input type="date" id="start"></label><label>Sampai<input type="date" id="end"></label>
+<label>Cabang<select id="branch"><option value="">Semua cabang</option></select></label>
+<label>Kategori<select id="category"><option value="">Semua kategori</option></select></label>
+<label>Status pesanan<select id="status"><option value="valid">Pesanan berjalan & selesai</option><option value="all">Semua status</option></select></label>
+<div class="pre"><button class="btn" data-p="30">30 hari</button><button class="btn" data-p="90">90 hari</button><button class="btn" data-p="365">1 tahun</button><button class="btn" data-p="0">Semua</button></div>
+</div>
+<div id="err"></div>
+
+<section class="page" id="p-ringkasan"><h2>Ringkasan</h2><p class="sub" id="rangeTxt"></p>
+<ul class="ins" id="ins"></ul><div class="strip" id="kpi"></div>
+<div class="pn" style="margin-bottom:18px"><h3>Tren penjualan</h3><p class="sub">Pendapatan dan estimasi laba per bulan</p><div class="ch t"><canvas id="cMini"></canvas></div></div>
+<div class="g"><div class="pn"><h3>Penjualan per cabang</h3><p class="sub">Bandingkan kontribusi tiap cabang</p><div class="ch"><canvas id="cBranch"></canvas></div></div>
+<div class="pn"><h3>Penjualan per kategori</h3><p class="sub">Porsi pendapatan tiap kategori produk</p><div class="ch"><canvas id="cCat"></canvas></div></div></div></section>
+
+<section class="page" id="p-waktu"><h2>Penjualan harian, mingguan, bulanan</h2><p class="sub">Pilih satuan waktu untuk melihat naik-turunnya penjualan.</p>
+<div class="pn" style="margin-bottom:18px"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:10px">
+<label>Satuan<select id="gran"><option value="day">Harian</option><option value="week">Mingguan</option><option value="month" selected>Bulanan</option></select></label>
+<label>Ukuran<select id="metric"><option value="revenue">Pendapatan</option><option value="profit">Estimasi laba</option><option value="orders">Jumlah pesanan</option><option value="qty">Unit terjual</option></select></label>
+<button class="btn" style="margin-left:auto" id="csvSer">Unduh CSV</button></div><div class="ch t"><canvas id="cTrend"></canvas></div></div>
+<div class="pn" style="margin-bottom:18px"><h3>Kalender penjualan harian</h3><p class="sub">Makin pekat hijaunya, makin besar pendapatan hari itu. Arahkan kursor untuk melihat nilainya.</p><div class="hm" id="hm"></div><div class="lg" id="lg"></div></div>
+<div class="g"><div class="pn"><h3>Hari terbaik dalam seminggu</h3><p class="sub">Untuk menentukan hari promo</p><div class="ch"><canvas id="cDay"></canvas></div></div>
+<div class="pn"><h3>Rincian per periode</h3><p class="sub">Terbaru di atas</p><div class="tw" id="tSer"></div></div></div></section>
+
+<section class="page" id="p-produk"><h2>Produk dan margin</h2><p class="sub">DWH tidak menyimpan harga modal, jadi laba dihitung dari margin per kategori di bawah ini. Ubah sesuai kondisi bisnis klien.</p>
+<div class="pn" style="margin-bottom:18px"><h3>Asumsi margin laba (%)</h3><div class="mg" id="mg" style="margin-top:10px"></div></div>
+<div class="g"><div class="pn"><h3>10 produk dengan pendapatan tertinggi</h3><p class="sub">&nbsp;</p><div class="ch t"><canvas id="cProd"></canvas></div></div>
+<div class="pn"><h3>Laba per kategori</h3><p class="sub">Pendapatan dikali margin</p><div class="tw" id="tCat"></div></div></div></section>
+
+<section class="page" id="p-pelanggan"><h2>Pelanggan</h2><p class="sub">Siapa dan dari mana pembeli terbaik.</p>
+<div class="g"><div class="pn"><h3>10 pelanggan teratas</h3><p class="sub">Berdasarkan pendapatan</p><div class="tw" id="tCust"></div></div>
+<div class="pn"><h3>10 kota teratas</h3><p class="sub">&nbsp;</p><div class="ch"><canvas id="cCity"></canvas></div></div>
+<div class="pn"><h3>Jenis kelamin pembeli</h3><p class="sub">L = laki-laki, P = perempuan</p><div class="ch"><canvas id="cGen"></canvas></div></div></div></section>
+
+<section class="page" id="p-bayar"><h2>Pembayaran dan status pesanan</h2><p class="sub">Pantau pembayaran yang gagal dan pesanan yang batal atau dikembalikan.</p>
+<div class="g"><div class="pn"><h3>Nilai pembayaran per metode</h3><p class="sub">Sukses dibanding gagal</p><div class="ch"><canvas id="cPay"></canvas></div></div>
+<div class="pn"><h3>Tingkat keberhasilan metode</h3><p class="sub">Dari jumlah transaksi pembayaran</p><div class="tw" id="tPay"></div></div>
+<div class="pn"><h3>Status pesanan</h3><p class="sub">Semua status, tidak terpengaruh filter status</p><div class="ch"><canvas id="cStat"></canvas></div></div></div></section>
+
+<section class="page" id="p-transaksi"><h2>Daftar transaksi</h2><p class="sub">Telusuri, urutkan, lalu unduh sebagai CSV untuk Excel.</p>
+<div class="pn"><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"><input id="q" placeholder="Cari pelanggan, produk, kota, atau nomor order" style="flex:1;min-width:240px"><button class="btn pri" id="csvRows">Unduh CSV</button></div>
+<div class="tw" id="tRows"></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><span class="sub" id="pgInfo"></span><span><button class="btn" id="prev">Sebelumnya</button> <button class="btn" id="next">Berikutnya</button></span></div></div></section>
+
+<section class="page" id="p-kualitas"><h2>Kualitas data</h2><p class="sub">Ringkasan proses ETL yang menyiapkan data di dashboard ini.</p>
+<div class="pn" style="margin-bottom:18px"><h3>Isi data warehouse</h3><div class="tw" id="tCnt"></div></div>
+<div class="pn"><h3>Log audit ETL</h3><p class="sub">Hasil pemeriksaan 7 dimensi kualitas data</p><div class="tw" id="tAud"></div></div></section>
+</main>
+<script>
+const $=i=>document.getElementById(i),rp=v=>'Rp '+Math.round(v).toLocaleString('id-ID'),nf=v=>Math.round(v).toLocaleString('id-ID'),
+sh=v=>Math.abs(v)>=1e9?(v/1e9).toFixed(1).replace('.',',')+' M':Math.abs(v)>=1e6?Math.round(v/1e6)+' jt':nf(v),
+C=['#0f5c4d','#f2a900','#d6533a','#3c6e9f','#8a4f7d','#7a8c86'],DEF={Electronics:15,Fashion:35,Appliances:18,Furniture:28,Books:25,Health:30},
+DAYS=['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'],
+PG=[['ringkasan','Ringkasan'],['waktu','Harian & bulanan'],['produk','Produk & margin'],['pelanggan','Pelanggan'],['bayar','Pembayaran & status'],['transaksi','Transaksi'],['kualitas','Kualitas data']];
+let S={},CH={},M=JSON.parse(localStorage.getItem('m')||'null')||{...DEF},R=[],pg=0,sk='date',sd=-1,cur='ringkasan';
+Chart.defaults.font.family='"Plus Jakarta Sans",system-ui,sans-serif';Chart.defaults.color='#5f7069';
+function mk(id,type,labels,sets,o={}){CH[id]&&CH[id].destroy();const dn=type=='doughnut';
+CH[id]=new Chart($(id),{type,data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,indexAxis:o.ax,
+plugins:{legend:{display:sets.length>1||dn,position:dn?'right':'top',labels:{usePointStyle:true,boxWidth:8}},
+tooltip:{callbacks:{label:c=>' '+(c.dataset.label||c.label)+': '+(c.dataset.n?nf(c.raw):rp(c.raw))}}},
+scales:dn?{}:{x:{stacked:o.st,grid:{display:false},ticks:{maxTicksLimit:14,callback:o.ax=='y'?sh:undefined}},y:{stacked:o.st,grid:{color:'#e6ede9'},ticks:{callback:o.ax=='y'?undefined:(o.n?nf:sh)}}}}})}
+const ds=(l,d,c,x={})=>({label:l,data:d,backgroundColor:c,borderColor:c,borderRadius:3,...x});
+function params(){return new URLSearchParams({start:$('start').value,end:$('end').value,branch:$('branch').value,category:$('category').value,status:$('status').value,gran:$('gran').value,margins:JSON.stringify(M)})}
+function fail(e){$('err').textContent='Tidak bisa memuat data: '+e.message;$('err').style.display='block'}
+async function load(){try{const d=await(await fetch('/api/analytics?'+params())).json();if(d.error)throw Error(d.error);$('err').style.display='none';S=d;draw()}catch(e){fail(e)}}
+const dl=(a,b)=>{if(!b)return'<span class="d" style="color:var(--mu)">belum ada pembanding</span>';const x=(a-b)/b*100;return`<span class="d ${x>=0?'up':'dn'}">${x>=0?'Naik':'Turun'} ${Math.abs(x).toFixed(1).replace('.',',')}% dari periode sebelumnya</span>`};
+function insights(){const o=[],k=S.kpi,p=S.kpi_prev,top=a=>a[0],tot=k.revenue||1;
+if(!S.series.length)return['Tidak ada transaksi pada filter ini. Coba perluas rentang tanggal.'];
+const m=S.series.reduce((a,b)=>b.revenue>a.revenue?b:a);o.push(`Pendapatan ${rp(k.revenue)} dari ${nf(k.orders)} pesanan. ${p.revenue?(k.revenue>=p.revenue?'Naik ':'Turun ')+Math.abs((k.revenue-p.revenue)/p.revenue*100).toFixed(1).replace('.',',')+'% dibanding periode sebelumnya.':''}`);
+o.push(`Periode terbaik: <b>${m.key}</b> dengan ${rp(m.revenue)} (sesuai satuan di halaman Harian & bulanan).`);
+const b=top(S.branch),c=top(S.category);o.push(`<b>${b.key}</b> menyumbang ${(b.revenue/tot*100).toFixed(0)}% pendapatan, dan kategori <b>${c.key}</b> ${(c.revenue/tot*100).toFixed(0)}%.`);
+const w=[...S.weekday].sort((a,b)=>b.revenue-a.revenue)[0];if(w)o.push(`Hari paling ramai: <b>${w.key}</b> (${rp(w.revenue)}).`);
+const ok=S.payments.reduce((a,x)=>a+x.n_ok,0),fl=S.payments.reduce((a,x)=>a+x.n_fail,0);if(ok+fl){const wp=S.payments.map(x=>({m:x.method,f:x.n_fail/(x.n_ok+x.n_fail)})).sort((a,b)=>b.f-a.f)[0];
+o.push(`${(ok/(ok+fl)*100).toFixed(0)}% pembayaran berhasil. Kegagalan tertinggi di <b>${wp.m}</b> (${(wp.f*100).toFixed(0)}%).`)}
+o.push(`${(S.cancel_rate*100).toFixed(0)}% pesanan berakhir batal atau dikembalikan.`);return o}
+function tbl(id,h,r,right=[]){$(id).innerHTML='<table><tr>'+h.map((x,i)=>`<th class="${right.includes(i)?'n':''}">${x}</th>`).join('')+'</tr>'+r.map(a=>'<tr>'+a.map((c,i)=>`<td class="${right.includes(i)?'n':''}">${c??''}</td>`).join('')+'</tr>').join('')+'</table>'}
+function heat(){const d=S.daily;if(!d.length){$('hm').innerHTML='<p class="sub">Tidak ada data.</p>';return}
+const map=Object.fromEntries(d.map(x=>[x.key,x.revenue])),mx=Math.max(...d.map(x=>x.revenue)),s=new Date(S.range.start+'T00:00'),e=new Date(S.range.end+'T00:00'),cells=[];
+const sh0=(s.getDay()+6)%7;for(let i=0;i<sh0;i++)cells.push('<i style="visibility:hidden"></i>');
+const col=v=>{if(!v)return'#e9efec';const t=Math.pow(v/mx,.6);return`rgb(${Math.round(214-t*199)},${Math.round(232-t*140)},${Math.round(224-t*147)})`};
+for(let x=new Date(s);x<=e;x.setDate(x.getDate()+1)){const k=x.toLocaleDateString('sv'),v=map[k]||0;cells.push(`<i style="background:${col(v)}" title="${k}: ${v?rp(v):'tidak ada penjualan'}"></i>`)}
+$('hm').innerHTML='<div class="c">'+cells.join('')+'</div>';$('hm').scrollLeft=1e6;
+$('lg').innerHTML='Rendah '+[0,.25,.5,.75,1].map(t=>`<i style="background:${col(t*mx||1)}"></i>`).join('')+' Tinggi (maks '+rp(mx)+')'}
+function draw(){const k=S.kpi,p=S.kpi_prev,r=S.range;$('rangeTxt').textContent=`Menampilkan ${r.start} sampai ${r.end}. Data tersedia ${r.min} sampai ${r.max}.`;
+$('src').textContent='Sumber: dwh_ecommerce.db';$('ins').innerHTML=insights().map(t=>`<li>${t}</li>`).join('');
+$('kpi').innerHTML=[['Pendapatan',rp(k.revenue),dl(k.revenue,p.revenue)],['Estimasi laba',rp(k.profit),dl(k.profit,p.profit)],['Pesanan',nf(k.orders),dl(k.orders,p.orders)],
+['Unit terjual',nf(k.qty),dl(k.qty,p.qty)],['Rata-rata per pesanan',rp(k.aov),dl(k.aov,p.aov)],['Pelanggan aktif',nf(k.customers),dl(k.customers,p.customers)]].map(([a,b,c])=>`<div><small>${a}</small><b>${b}</b>${c}</div>`).join('');
+const se=S.series,m=$('metric').value,ml=$('metric').selectedOptions[0].text,mo=['orders','qty'].includes(m);
+mk('cTrend',se.length>70?'line':'bar',se.map(x=>x.key),[ds(ml,se.map(x=>x[m]),C[0],{pointRadius:0,borderWidth:2,tension:.25,n:mo})],{n:mo});
+mk('cMini','bar',se.map(x=>x.key),[ds('Pendapatan',se.map(x=>x.revenue),C[0]),ds('Estimasi laba',se.map(x=>x.profit),C[1])]);
+const two=(id,a,ax)=>mk(id,'bar',a.map(x=>Array.isArray(x.key)?x.key[0]:x.key),[ds('Pendapatan',a.map(x=>x.revenue),C[0]),ds('Estimasi laba',a.map(x=>x.profit),C[1])],{ax});
+two('cBranch',S.branch);two('cProd',S.product,'y');two('cCity',S.city,'y');
+two('cDay',DAYS.map(d=>S.weekday.find(x=>x.key==d)||{key:d,revenue:0,profit:0}));
+mk('cCat','doughnut',S.category.map(x=>x.key),[{label:'Pendapatan',data:S.category.map(x=>x.revenue),backgroundColor:C,borderColor:'#fff'}]);
+mk('cGen','doughnut',S.gender.map(x=>x.key),[{label:'Pendapatan',data:S.gender.map(x=>x.revenue),backgroundColor:C,borderColor:'#fff'}]);
+mk('cStat','doughnut',S.status.map(x=>x.key),[{label:'Pesanan',n:1,data:S.status.map(x=>x.orders),backgroundColor:[C[0],C[3],C[1],C[2],C[4]],borderColor:'#fff'}]);
+mk('cPay','bar',S.payments.map(x=>x.method),[ds('Sukses',S.payments.map(x=>x.Success),C[0]),ds('Gagal',S.payments.map(x=>x.Failed),C[2])],{st:1});
+const mxp=Math.max(...S.category.map(x=>x.profit),1);
+tbl('tCat',['Kategori','Margin','Pendapatan','Estimasi laba',''],S.category.map(x=>[x.key,(M[x.key]??0)+'%',rp(x.revenue),rp(x.profit),`<div class="bar"><s style="width:${x.profit/mxp*100}%"></s></div>`]),[1,2,3]);
+tbl('tCust',['Pelanggan','Kota','Pesanan','Pendapatan'],S.customers.map(x=>[x.key[1],x.key[2],x.orders,rp(x.revenue)]),[2,3]);
+tbl('tPay',['Metode','Sukses','Gagal','Berhasil'],S.payments.map(x=>[x.method,x.n_ok,x.n_fail,`<b>${(x.n_ok/(x.n_ok+x.n_fail)*100).toFixed(0)}%</b>`]),[1,2,3]);
+tbl('tSer',['Periode','Pesanan','Pendapatan','Est. laba'],[...se].reverse().map(x=>[x.key,x.orders,rp(x.revenue),rp(x.profit)]),[1,2,3]);
+tbl('tCnt',['Tabel','Jumlah baris'],Object.entries(S.counts).map(([a,b])=>[a,nf(b)]),[1]);
+tbl('tAud',['Waktu','Tabel','DQ','Pemeriksaan','Masuk','Keluar','Diperbaiki','Catatan'],S.audit.map(a=>[a.time,a.table,a.dq,a.action,a.in,a.out,a.fixed,a.notes]),[4,5,6]);
+heat();R=S.rows;pg=0;rows()}
+const H=[['date','Tanggal'],['order','Order'],['customer','Pelanggan'],['city','Kota'],['product','Produk'],['category','Kategori'],['branch','Cabang'],['qty','Qty'],['subtotal','Subtotal'],['status','Status']];
+const view=()=>{const q=$('q').value.toLowerCase();return R.filter(r=>!q||[r.customer,r.product,r.order,r.city].join(' ').toLowerCase().includes(q)).sort((a,b)=>(a[sk]>b[sk]?1:-1)*sd)};
+function rows(){const v=view(),n=Math.ceil(v.length/50)||1;pg=Math.min(Math.max(pg,0),n-1);$('pgInfo').textContent=`${nf(v.length)} baris, halaman ${pg+1} dari ${n}`;
+$('tRows').innerHTML='<table><tr>'+H.map(([k,t])=>`<th class="s ${k=='subtotal'||k=='qty'?'n':''}" data-k="${k}">${t}${k==sk?(sd>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>'+
+v.slice(pg*50,pg*50+50).map(r=>'<tr>'+H.map(([k])=>`<td class="${k=='subtotal'||k=='qty'?'n':''}">${k=='subtotal'?rp(r[k]):r[k]}</td>`).join('')+'</tr>').join('')+'</table>'}
+function csv(a,name){if(!a.length)return;const k=Object.keys(a[0]).filter(x=>typeof a[0][x]!='object'),
+t=[k.join(',')].concat(a.map(r=>k.map(c=>JSON.stringify(r[c]??'')).join(','))).join('\n'),l=document.createElement('a');
+l.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));l.download=name+'.csv';l.click()}
+function go(p){cur=p;document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id=='p-'+p));
+document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p==p));setTimeout(()=>Object.values(CH).forEach(c=>c.resize()),30)}
+function preset(d){const e=new Date(S.range.max+'T00:00');$('end').value=S.range.max;$('start').value=d?new Date(e-d*864e5).toLocaleDateString('sv'):S.range.min;load()}
+$('nav').innerHTML=PG.map(([k,t])=>`<button data-p="${k}">${t}</button>`).join('');$('nav').onclick=e=>e.target.dataset.p&&go(e.target.dataset.p);
+document.querySelectorAll('.pre .btn').forEach(b=>b.onclick=()=>preset(+b.dataset.p));
+$('csvSer').onclick=()=>csv(S.series,'tren-'+$('gran').value);$('csvRows').onclick=()=>csv(view(),'transaksi');
+$('prev').onclick=()=>{pg--;rows()};$('next').onclick=()=>{pg++;rows()};$('q').oninput=()=>{pg=0;rows()};
+$('tRows').onclick=e=>{const k=e.target.dataset.k;if(k){sd=sk==k?-sd:-1;sk=k;rows()}};
+(async()=>{go('ringkasan');try{const m=await(await fetch('/api/meta')).json();if(m.error)throw Error(m.error);
+m.branches.forEach(b=>$('branch').add(new Option(b,b)));m.categories.forEach(c=>{$('category').add(new Option(c,c));if(!(c in M))M[c]=20});
+m.statuses.forEach(s=>$('status').add(new Option('Hanya '+s,s)));
+$('mg').innerHTML=m.categories.map(c=>`<label>${c}<input type="number" min="0" max="100" value="${M[c]}" data-c="${c}"></label>`).join('');
+$('mg').onchange=e=>{M[e.target.dataset.c]=+e.target.value;localStorage.setItem('m',JSON.stringify(M));load()};
+const r=await(await fetch('/api/analytics?margins={}')).json();$('start').value=r.range.min;$('end').value=r.range.max;S={range:r.range};
+['start','end','branch','category','status','gran','metric'].forEach(i=>$(i).onchange=load);load()}catch(e){fail(e)}})();
+</script></body></html>
