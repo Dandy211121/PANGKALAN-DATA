@@ -1,178 +1,66 @@
 
-============================================================
-  ETL PIPELINE - E-Commerce DWH (7 Data Quality Dimensions)
-============================================================
-  Waktu ETL : 2026-10-14 09:52:03
-  OLTP      : oltp_ecommerce.db
-  DWH       : dwh_ecommerce.db
+=================================================================
+  ETL PIPELINE DWH E-COMMERCE (7 DATA QUALITY DIMENSIONS)
+=================================================================
 
-============================================================
-  EXTRACT - Membaca dari OLTP
-============================================================
-  customers      :   214 baris
-  products       :    25 baris
-  orders         :   507 baris
-  order_items    :  1587 baris
-  payments       :   502 baris
+=================================================================
+  1. EXTRACT - Membaca dari 3 Basis Data OLTP
+=================================================================
+  [OK] Berhasil mengekstrak dari: oltp_cabang_1.db (Cabang Jakarta)
+  [OK] Berhasil mengekstrak dari: oltp_cabang_2.db (Cabang Surabaya)
+  [OK] Berhasil mengekstrak dari: oltp_cabang_3.db (Cabang Bandung)
+       -> Total customers   :   237 baris terkumpul
+       -> Total products    :    69 baris terkumpul
+       -> Total orders      :   483 baris terkumpul
+       -> Total order_items :  1238 baris terkumpul
+       -> Total payments    :   480 baris terkumpul
 
-============================================================
-  TRANSFORM - Menerapkan 7 Dimensi Data Quality
-============================================================
-
-============================================================
+=================================================================
   DQ-1 | COMPLETENESS - NULL Value Handling
-============================================================
+=================================================================
+  [-] Pelanggan dihapus (nama + email NULL): 3
+  >> Ringkasan DQ-1: 3 dihapus, 0 kolom diisi
 
---- Customers ---
-  Masuk: 214 baris
-  [-] DIHAPUS (nama+email NULL): 1 - IDs: [204]
-  [~] full_name       diisi 'Unknown Customer': 1 baris
-  [~] email           diisi 'unknown@placeholder.com': 1 baris
-  [~] phone           diisi 'Tidak Tersedia': 2 baris
-  [~] city            diisi 'Tidak Diketahui': 2 baris
-  [~] province        diisi 'Tidak Diketahui': 2 baris
-  [~] island          diisi 'Tidak Diketahui': 2 baris
-  [~] gender          diisi 'Tidak Diketahui': 1 baris
+=================================================================
+  DQ-2 | ACCURACY - Koreksi Nilai Subtotal & Total
+=================================================================
+  [~] Subtotal salah dikoreksi ke (qty x price): 3 baris
+  [~] Total amount order disinkronkan ke sum(item): 6 baris
+  >> Ringkasan DQ-2: 9 nilai dikoreksi
 
---- Products ---
-  [~] product_name NULL: 1 | category NULL: 1 | price NULL: 1
+=================================================================
+  DQ-3 | CONSISTENCY - Standardisasi Format Data
+=================================================================
+  [OK] Seluruh format teks dan tanggal berhasil diseragamkan.
 
---- Orders ---
-  [~] status NULL: 2 | total_amount NULL: 2
+=================================================================
+  DQ-4 | UNIQUENESS - Deduplikasi Data
+=================================================================
+  [-] Akun pelanggan duplikat dihapus: 11
+  [-] Item pesanan duplikat dihapus: 20
+  [-] Pembayaran duplikat per order dihapus: 0
+  >> Ringkasan DQ-4: 31 duplikat dibersihkan
 
-  >> Ringkasan DQ-1: 1 dihapus, 18 diisi
+=================================================================
+  DQ-5 | VALIDITY - Validasi Aturan Logika Bisnis
+=================================================================
+  [-] Pelanggan HP/Gender tidak valid dihapus: 2
+  [-] Produk harga negatif/ekstrem dihapus: 9
+  [-] Order tanggal salah / total minus dihapus: 6
+  [-] Item belanjaan quantity <= 0 dihapus: 3
+  [-] Transaksi pembayaran amount <= 0 dihapus: 3
+  >> Ringkasan DQ-5: 23 record melanggar aturan bisnis dibuang
 
-============================================================
-  DQ-2 | ACCURACY - Koreksi Nilai Tidak Akurat
-============================================================
+=================================================================
+  3. LOAD - Memuat ke Data Warehouse (4_dwh/dwh_ecommerce.db)
+=================================================================
+  [DIM] dim_date     : 390 record
+  [DIM] dim_product  : 20 record
+  [DIM] dim_order    : 477 record
+  [DIM] dim_customer : 221 record (SCD Type 2 Aktif)
 
---- Order Items - Rekonsiliasi Subtotal ---
-  [!] 1 baris subtotal tidak sesuai qty x price:
-      item_id=9004: subtotal=1000000.0 expected=7000000.0
-  [~] Subtotal dikoreksi: 1 baris
-
---- Orders - Rekonsiliasi Total vs Sum Item ---
-  [!] 2 order total berbeda >10% dari sum(items):
-      order_id=1: total=4790000.0 sum_items=34790000
-      order_id=6: total=1148000.0 sum_items=8148000
-
-  >> Ringkasan DQ-2: 3 nilai dikoreksi
-
-============================================================
-  DQ-3 | CONSISTENCY - Standardisasi Format
-============================================================
-  [~] Customers: full_name->Title, email->lower, gender->upper
-  [~] Products: category->Title Case
-  [~] Orders: status->Title Case, order_date->YYYY-MM-DD
-  [~] Payments: payment_method & status->Title Case
-
-  >> Ringkasan DQ-3: Semua tabel distandarisasi formatnya
-
-============================================================
-  DQ-4 | UNIQUENESS - Deduplication
-============================================================
-
-  Customers: 213 -> 209 (4 duplikat dihapus, pertahankan ID terkecil)
-  Order Items: 1587 -> 1564 (23 duplikat dihapus)
-  Payments: 502 -> 502 (0 duplikat dihapus)
-
-  >> Ringkasan DQ-4: 27 duplikat dihapus
-  Catatan: Surrogate Key (AUTOINCREMENT) dibuat otomatis saat load ke DWH
-
-============================================================
-  DQ-5 | VALIDITY - Business Rule Validation
-============================================================
-
---- Customers - Validasi No. Telepon & Gender (L/P) ---
-  [!] No. Telepon tidak valid: 2
-      ID=211 nama=User Hp Pendek phone='123'
-      ID=212 nama=User Hp Huruf phone='BUKAN_TELEPON'
-  [!] Gender tidak valid (bukan L/P): 3
-      ID=203 gender='TIDAK DIKETAHUI'
-      ID=213 gender='X'
-      ID=214 gender='TIDAK DIKETAHUI'
-
---- Products - Validasi Harga (0 < harga <= 50jt) ---
-  [!] Harga tidak valid: 4
-      ID=21 'Produk Misterius' harga=0
-      ID=23 'Produk Harga Negatif' harga=-500,000
-      ID=24 'Produk Gratis' harga=0
-      ID=25 'Produk Harga Gila' harga=999,999,999
-
---- Orders - Validasi Tanggal (2021-skrg) & Total (>=0) ---
-  [!] Tanggal tidak valid: 2
-      order_id=506 tgl=2099-12-31
-      order_id=507 tgl=2015-01-01
-  [!] Total negatif: 1
-
---- Order Items - Validasi Quantity (>0) ---
-  [!] Quantity <= 0: 1
-
---- Payments - Validasi Amount (>0) ---
-  [!] Amount <= 0: 2
-
-  >> Ringkasan DQ-5: 15 record tidak valid dihapus
-
-============================================================
-  RINGKASAN TRANSFORM
-============================================================
-  Tabel            Sebelum  Sesudah  Selisih
-  -------------------------------------------
-  customers            214      204       10
-  products              25       21        4
-  orders               507      504        3
-  order_items         1587     1563       24
-  payments             502      500        2
-
-============================================================
-  LOAD - Memuat ke DWH
-============================================================
-
-  [DIM] Tabel Dimensi:
-  dim_date          :   595 record
-  dim_product       :    21 record
-  dim_order         :   504 record
-
-============================================================
-  DQ-7 | TIMELINESS - SCD Type 2 (dim_customer)
-============================================================
-  Melacak histori perubahan data pelanggan
-  Kolom SCD-2: valid_from, valid_to, is_current, dwh_version
-  dim_customer aktif:   204 record
-  Insert baru: 204 | Update SCD-2: 0
-
-============================================================
-  DQ-6 | REFERENTIAL INTEGRITY - Validasi FK -> Dimensi
-============================================================
-
-  fact_sales input  : 1563
-    Orphan order    : 0
-    Orphan customer : 10
-    Orphan product  : 0
-    Orphan date     : 0
-    Valid (lolos RI): 1553
-
-  fact_payments input: 500
-    Orphan order     : 0
-    Orphan customer  : 3
-    Orphan date      : 0
-    Valid (lolos RI) : 497
-
-  >> Ringkasan DQ-6: 13 orphan record dikeluarkan
-
-  [FACT] Tabel Fakta:
-  fact_sales        :  1553 record
-  fact_payments     :   497 record
-
-============================================================
-  ETL SELESAI - Ringkasan DWH
-============================================================
-  Tabel DWH                   Record
-  -----------------------------------
-  dim_customer                   204
-  dim_product                     21
-  dim_date                       595
-  dim_order                      504
-  fact_sales                    1553
-  fact_payments                  497
-  etl_audit_log                    5
+=================================================================
+  DQ-6 | REFERENTIAL INTEGRITY - Validasi Relasi ke Dimensi
+=================================================================
+  [FACT] fact_sales    : 1203 record (Orphans dikeluarkan: 12)
+  [FACT] fact_payments : 471 record (Orphans dikeluarkan: 6)

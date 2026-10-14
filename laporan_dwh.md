@@ -235,44 +235,50 @@ Berikut adalah ringkasan hasil eksekusi query analitis dari file `3_dwh_analysis
 
 ## 10. Struktur File Proyek & Instruksi Eksekusi
 
+Struktur folder proyek diorganisasikan secara modular merepresentasikan arsitektur sistem:
+**3 Sumber OLTP ➔ ETL Pipeline (Scheduler) ➔ Data Warehouse ➔ Dashboard / Viewing**
+
 ```
 DWH/
-├── 1_generate_oltp.py    # Generator database operasional OLTP + simulasi data kotor
-├── 2_etl_process.py      # Pipeline ETL: 7 Dimensi DQ, SCD-2, pembentukan DWH
-├── 3_dwh_analysis.py     # Query analitis OLAP pada DWH
-├── 4_etl_scheduler.py    # Otomatisasi Scheduler pipeline ETL (Interval / Harian)
-├── run_scheduler.bat     # Batch launcher 1-klik untuk scheduler di Windows
-├── oltp_ecommerce.db     # File basis data OLTP (SQLite)
-├── dwh_ecommerce.db      # File basis data DWH (SQLite)
-├── etl_log.txt           # File log audit proses ETL
-├── scheduler_log.txt     # File log riwayat eksekusi otomatis scheduler
-└── laporan_dwh.md        # Laporan komprehensif proyek
+├── 📂 1_oltp/                # Sumber data operasional (3 Cabang OLTP)
+│   ├── generate_oltp.py     # Generator data kotor multi-cabang
+│   ├── oltp_cabang_1.db     # Sumber 1: Cabang Jakarta (Head Office & Online)
+│   ├── oltp_cabang_2.db     # Sumber 2: Cabang Surabaya (Retail Hub Timur)
+│   └── oltp_cabang_3.db     # Sumber 3: Cabang Bandung (Regional Store)
+│
+├── 📂 2_etl/                 # Pipeline ETL & 7 Dimensi DQ
+│   └── etl_pipeline.py      # Ekstraksi multi-sumber, cleansing, SCD-2, & load
+│
+├── 📂 3_scheduler/           # Otomatisasi Penjadwalan
+│   ├── etl_scheduler.py     # Program scheduler (interval & daily)
+│   ├── run_scheduler.bat    # Batch launcher 1-klik di Windows
+│   └── scheduler_log.txt    # Log riwayat jadwal eksekusi
+│
+├── 📂 4_dwh/                 # Data Warehouse Storage
+│   ├── schema_dwh.sql       # Skema DDL tabel dimensi & fakta
+│   ├── dwh_ecommerce.db     # Basis data Star Schema DWH (SQLite)
+│   └── etl_audit_log.txt    # Log audit kualitas data
+│
+├── 📂 5_dashboard/           # Lapisan Presentasi & Viewing
+│   ├── dashboard_app.py     # Web Dashboard Interaktif (Port 8080)
+│   ├── olap_analysis.py     # Script analisis bisnis OLAP
+│   ├── run_dashboard.bat    # Batch launcher 1-klik web dashboard
+│   └── 📂 charts/           # Grafik visualisasi bisnis (PNG)
+│
+├── 📄 main.py                # Runner terpusat menu interaktif
+├── 📄 README.md              # Dokumentasi arsitektur repositori
+└── 📄 laporan_dwh.md         # Laporan komprehensif proyek
 ```
 
-### Urutan Eksekusi Manual:
-Jalankan file program secara berurutan di terminal:
+### Instruksi Eksekusi Terpusat:
+Jalankan file `main.py` di terminal untuk mengakses menu terintegrasi:
 ```bash
-py -3 1_generate_oltp.py
-py -3 2_etl_process.py
-py -3 3_dwh_analysis.py
+py -3 main.py
 ```
 
-### Eksekusi Otomatis (Scheduler):
-Untuk mengotomatiskan proses ETL secara berkala tanpa intervensi manual:
-1. **Mode Demo / Interval (Tiap 60 Detik):**
-   ```bash
-   py -3 4_etl_scheduler.py --interval 60
-   ```
-   *(Atau cukup klik dua kali file `run_scheduler.bat`)*
-
-2. **Mode Produksi Harian (Setiap Pukul 00:00 / Tengah Malam):**
-   ```bash
-   py -3 4_etl_scheduler.py --daily 00:00
-   ```
-
-3. **Mode Uji Coba Sekali Jalan:**
-   ```bash
-   py -3 4_etl_scheduler.py --once
-   ```
-
-> Setiap aktivitas scheduler dicatat secara otomatis ke dalam `scheduler_log.txt` mencakup timestamp, durasi eksekusi, serta status keberhasilan proses ETL.
+Atau jalankan per modul secara langsung:
+1. **Generate 3 Sumber OLTP:** `py -3 1_oltp/generate_oltp.py`
+2. **Jalankan Pipeline ETL:** `py -3 2_etl/etl_pipeline.py`
+3. **Buka Web Dashboard:** `py -3 5_dashboard/dashboard_app.py` *(akses di `http://localhost:8080`)*
+4. **Analisis Bisnis OLAP & Grafik:** `py -3 5_dashboard/olap_analysis.py`
+5. **Jalankan Scheduler:** `py -3 3_scheduler/etl_scheduler.py --interval 60`

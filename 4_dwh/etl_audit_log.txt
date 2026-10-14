@@ -1,0 +1,66 @@
+
+=================================================================
+  ETL PIPELINE DWH E-COMMERCE (7 DATA QUALITY DIMENSIONS)
+=================================================================
+
+=================================================================
+  1. EXTRACT - Membaca dari 3 Basis Data OLTP
+=================================================================
+  [OK] Berhasil mengekstrak dari: oltp_cabang_1.db (Cabang Jakarta)
+  [OK] Berhasil mengekstrak dari: oltp_cabang_2.db (Cabang Surabaya)
+  [OK] Berhasil mengekstrak dari: oltp_cabang_3.db (Cabang Bandung)
+       -> Total customers   :   237 baris terkumpul
+       -> Total products    :    69 baris terkumpul
+       -> Total orders      :   483 baris terkumpul
+       -> Total order_items :  1238 baris terkumpul
+       -> Total payments    :   480 baris terkumpul
+
+=================================================================
+  DQ-1 | COMPLETENESS - NULL Value Handling
+=================================================================
+  [-] Pelanggan dihapus (nama + email NULL): 3
+  >> Ringkasan DQ-1: 3 dihapus, 0 kolom diisi
+
+=================================================================
+  DQ-2 | ACCURACY - Koreksi Nilai Subtotal & Total
+=================================================================
+  [~] Subtotal salah dikoreksi ke (qty x price): 3 baris
+  [~] Total amount order disinkronkan ke sum(item): 6 baris
+  >> Ringkasan DQ-2: 9 nilai dikoreksi
+
+=================================================================
+  DQ-3 | CONSISTENCY - Standardisasi Format Data
+=================================================================
+  [OK] Seluruh format teks dan tanggal berhasil diseragamkan.
+
+=================================================================
+  DQ-4 | UNIQUENESS - Deduplikasi Data
+=================================================================
+  [-] Akun pelanggan duplikat dihapus: 11
+  [-] Item pesanan duplikat dihapus: 20
+  [-] Pembayaran duplikat per order dihapus: 0
+  >> Ringkasan DQ-4: 31 duplikat dibersihkan
+
+=================================================================
+  DQ-5 | VALIDITY - Validasi Aturan Logika Bisnis
+=================================================================
+  [-] Pelanggan HP/Gender tidak valid dihapus: 2
+  [-] Produk harga negatif/ekstrem dihapus: 9
+  [-] Order tanggal salah / total minus dihapus: 6
+  [-] Item belanjaan quantity <= 0 dihapus: 3
+  [-] Transaksi pembayaran amount <= 0 dihapus: 3
+  >> Ringkasan DQ-5: 23 record melanggar aturan bisnis dibuang
+
+=================================================================
+  3. LOAD - Memuat ke Data Warehouse (4_dwh/dwh_ecommerce.db)
+=================================================================
+  [DIM] dim_date     : 390 record
+  [DIM] dim_product  : 20 record
+  [DIM] dim_order    : 477 record
+  [DIM] dim_customer : 221 record (SCD Type 2 Aktif)
+
+=================================================================
+  DQ-6 | REFERENTIAL INTEGRITY - Validasi Relasi ke Dimensi
+=================================================================
+  [FACT] fact_sales    : 1203 record (Orphans dikeluarkan: 12)
+  [FACT] fact_payments : 471 record (Orphans dikeluarkan: 6)
