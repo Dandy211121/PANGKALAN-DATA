@@ -56,9 +56,6 @@ def save_log():
     os.makedirs(DWH_DIR, exist_ok=True)
     with open(LOG_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(log_lines))
-    # Salin juga ke root jika perlu
-    with open(os.path.join(ROOT_DIR, "etl_log.txt"), "w", encoding="utf-8") as f:
-        f.write("\n".join(log_lines))
 
 # =================================================================
 # 1. EXTRACT (Membaca dari 3 Sumber OLTP)
@@ -453,10 +450,6 @@ def load_to_dwh(tables):
 
     conn.commit()
     conn.close()
-
-    # Salin DWH ke root untuk kompatibilitas script lama
-    try: shutil.copy(DWH_PATH, os.path.join(ROOT_DIR, "dwh_ecommerce.db"))
-    except: pass
 
 def main():
     section("ETL PIPELINE DWH E-COMMERCE (7 DATA QUALITY DIMENSIONS)")
